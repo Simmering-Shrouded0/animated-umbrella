@@ -23,20 +23,20 @@ jobs:
           echo "" >> master-list.txt
           
           # 2. Imgur
-          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/imgur >> master-list.txt
+          curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/imgur >> master-list.txt
           echo "" >> master-list.txt
           
           # 3. Twitter
-          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/twitter >> master-list.txt
+          curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/twitter >> master-list.txt
           
           # 4. PornHub
-          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/pornhub >> master-list.txt
+          curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/pornhub >> master-list.txt
           
           # 5. Discord
-          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/discord >> master-list.txt
+          curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/discord >> master-list.txt
           
           # 5. Facebook
-          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/facebook >> master-list.txt
+          curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/facebook >> master-list.txt
 
       - name: Save the Master File to Repository
         run: |

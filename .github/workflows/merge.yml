@@ -1,0 +1,48 @@
+name: Auto-Merge Domain Lists
+on:
+  schedule:
+    - cron: '0 4 * * *' # Runs automatically every day at 4:00 AM
+  workflow_dispatch: # Allows you to click a button to run it manually
+
+permissions:
+  contents: write # Allows the bot to save the combined file
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download and Combine Lists
+        run: |
+          # 0. Manualy added domains
+          cat my-custom-domains.txt >> master-list.txt
+          
+          # 1. Reddit
+          curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/reddit > master-list.txt
+          echo "" >> master-list.txt
+          
+          # 2. Imgur
+          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/imgur >> master-list.txt
+          echo "" >> master-list.txt
+          
+          # 3. Twitter
+          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/twitter >> master-list.txt
+          
+          # 4. PornHub
+          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/pornhub >> master-list.txt
+          
+          # 5. Discord
+          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/discord >> master-list.txt
+          
+          # 5. Facebook
+          curl -s https://github.com/v2fly/domain-list-community/raw/refs/heads/master/data/facebook >> master-list.txt
+
+      - name: Save the Master File to Repository
+        run: |
+          git config --global user.name "Auto-Merger Bot"
+          git config --global user.email "bot@github.com"
+          git add master-list.txt
+          # Only commit if the upstream lists actually changed
+          git diff --quiet && git diff --staged --quiet || git commit -m "Automated update of combined list"
+          git push

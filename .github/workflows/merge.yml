@@ -15,9 +15,6 @@ jobs:
       
       - name: Download and Combine Lists
         run: |
-          # 0. Manualy added domains
-          #cat my-custom-domains.txt >> master-list.txt
-          
           # 1. Reddit
           curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/reddit > master-list.txt
           echo "" >> master-list.txt
@@ -37,7 +34,10 @@ jobs:
           
           # 5. Facebook
           curl -s https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/facebook >> master-list.txt
-
+          
+          # 99. Manualy added domains --must stay at end of list--
+          cat my-custom-domains.txt >> master-list.txt
+          
       - name: Save the Master File to Repository
         run: |
           git config --global user.name "Auto-Merger Bot"

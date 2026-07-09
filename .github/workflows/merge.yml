@@ -1,4 +1,19 @@
-- name: Download and Combine Lists
+name: Auto-Merge Domain Lists
+on:
+  schedule:
+    - cron: '0 4 * * *' # Runs automatically every day at 4:00 AM
+  workflow_dispatch: # Allows you to click a button to run it manually
+
+permissions:
+  contents: write # Allows the bot to save the combined file
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download and Combine Lists
         run: |
           # 1. Initialize our tracking files
           > raw-domains.txt
@@ -42,3 +57,12 @@
           # 4. Append your personal custom domains at the very end
           echo "" >> master-list.txt
           cat my-custom-domains.txt >> master-list.txt || true
+
+      - name: Save the Master File to Repository
+        run: |
+          git config --global user.name "Auto-Merger Bot"
+          git config --global user.email "bot@github.com"
+          git add master-list.txt
+          # Only commit if the upstream lists actually changed
+          git diff --quiet && git diff --staged --quiet || git commit -m "Automated update of combined list"
+          git push

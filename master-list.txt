@@ -437,6 +437,7 @@ igtv.com
 imgur.com
 imgur.io
 imgurinc.com
+impala-media-production.s3.amazonaws.com
 imstagram.com
 imtagram.com
 instaadder.com
@@ -570,7 +571,13 @@ redkix.com
 rocksdb.com
 rocksdb.net
 rocksdb.org
+sc-cdn.net
 shopfacebook.com
+snap-dev.net
+snap.com
+snapads.com
+snapchat.com
+snapkit.co
 sportsfacebook.com
 sportstream.com
 supportfacebook.com

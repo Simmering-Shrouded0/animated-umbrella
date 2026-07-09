@@ -39,8 +39,8 @@ jobs:
             # Mark as processed so we don't download it twice
             echo "$company" >> processed.txt
 
-            # Download the list content into memory
-            content=$(curl -s "https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/$company")
+            # Download content with automatic error retry and silent failure flags
+            content=$(curl -f -s --retry 5 --retry-delay 5 "https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/$company")
 
             # Check for 'include:' tags and add those new lists to the bottom of the pending queue
             echo "$content" | grep -E '^include:' | sed 's/^include://' >> pending.txt
@@ -48,11 +48,14 @@ jobs:
             # Extract domains, strip attributes (@!cn), strip prefixes, and add to our raw list
             echo "$content" | grep -vE '^(#|include:)' | awk '{print $1}' | sed -E 's/^(full:|domain:|keyword:|regexp:)//' >> raw-domains.txt
             
+            # Be polite to the API: pause for 1.5 seconds before moving to the next list
+            sleep 1.5
+            
           done || true
 
           # 3. Deduplicate! 
-          # sort -u removes all duplicates, grep . removes any blank lines
-          sort -u raw-domains.txt | grep . > master-list.txt
+          # sort -u removes all duplicates, grep . removes blank lines, grep -v ':' drops accidental error artifacts
+          sort -u raw-domains.txt | grep . | grep -v ':' > master-list.txt
 
           # 4. Append your personal custom domains at the very end
           echo "" >> master-list.txt

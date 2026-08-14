@@ -572,6 +572,8 @@ rocksdb.com
 rocksdb.net
 rocksdb.org
 sc-cdn.net
+sc-gw.com
+sc-static.net
 shopfacebook.com
 snap-dev.net
 snap.com

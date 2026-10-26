@@ -30,7 +30,7 @@ jobs:
             tail -n +2 pending.txt > temp.txt && mv temp.txt pending.txt
 
             # Skip if it is empty, a comment, or we have already processed it
-            if [[ -z "$company" || "$company" == \#* ]] || grep -qx "$company" processed.txt; then
+            if [[ -z "$company" || "$company" == \#* ]] || grep -Fxq -- "$company" processed.txt; then
               continue
             fi
 
@@ -40,18 +40,42 @@ jobs:
             echo "$company" >> processed.txt
 
             # Download content with automatic error retry and silent failure flags
-            content=$(curl -f -s --retry 5 --retry-delay 5 "https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/$company")
+            if ! content=$(curl -f -sS --retry 5 --retry-delay 5 --connect-timeout 30 --max-time 120 "https://raw.githubusercontent.com/v2fly/domain-list-community/refs/heads/master/data/$company"); then
+              echo "::error::Failed to download $company; keeping the existing master-list.txt"
+              exit 1
+            fi
 
             # Check for 'include:' tags and add those new lists to the bottom of the pending queue
-            echo "$content" | grep -E '^include:' | sed 's/^include://' >> pending.txt
+            printf '%s\n' "$content" | awk '
+              {
+                sub(/#.*/, "")
+                if ($1 ~ /^include:/) {
+                  if (NF > 1) {
+                    print "Filtered includes require attribute-aware parsing: " $0 > "/dev/stderr"
+                    exit 1
+                  }
+                  sub(/^include:/, "", $1)
+                  print $1
+                }
+              }
+            ' >> pending.txt
 
-            # Extract domains, strip attributes (@!cn), strip prefixes, and add to our raw list
-            echo "$content" | grep -vE '^(#|include:)' | awk '{print $1}' | sed -E 's/^(full:|domain:|keyword:|regexp:)//' >> raw-domains.txt
+            # Keep literal domains only; regex and keyword rules are not router domains.
+            printf '%s\n' "$content" | awk '
+              {
+                sub(/#.*/, "")
+                if (NF == 0) next
+                entry = $1
+                if (entry ~ /^(include:|keyword:|regexp:)/) next
+                sub(/^(full:|domain:)/, "", entry)
+                print entry
+              }
+            ' >> raw-domains.txt
             
             # Be polite to the API: pause for 1.5 seconds before moving to the next list
             sleep 1.5
             
-          done || true
+          done
 
           # 3. Deduplicate! 
           # sort -u removes all duplicates, grep . removes blank lines, grep -v ':' drops accidental error artifacts

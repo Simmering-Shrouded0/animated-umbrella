@@ -11,7 +11,7 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download and Combine Lists
         run: |
@@ -77,13 +77,28 @@ jobs:
             
           done
 
-          # 3. Deduplicate! 
-          # sort -u removes all duplicates, grep . removes blank lines, grep -v ':' drops accidental error artifacts
-          sort -u raw-domains.txt | grep . | grep -v ':' > master-list.txt
+          # 3. Combine custom entries before filtering and deduplication.
+          if [ -f my-custom-domains.txt ]; then
+            cat my-custom-domains.txt >> raw-domains.txt
+          fi
 
-          # 4. Append your personal custom domains at the very end
-          echo "" >> master-list.txt
-          cat my-custom-domains.txt >> master-list.txt || true
+          # Require at least two non-empty labels, e.g. example.com.
+          # This excludes upstream TLD rules such as google and youtube.
+          awk '
+            {
+              sub(/\r$/, "")
+              sub(/#.*/, "")
+              if (NF == 0) next
+              entry = $1
+              if (entry ~ /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/) print entry
+            }
+          ' raw-domains.txt | LC_ALL=C sort -u > master-list.tmp
+
+          if [ ! -s master-list.tmp ]; then
+            echo "::error::No router-compatible domains found; keeping the existing master-list.txt"
+            exit 1
+          fi
+          mv master-list.tmp master-list.txt
 
       - name: Save the Master File to Repository
         run: |
